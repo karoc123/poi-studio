@@ -208,6 +208,7 @@ composer install --no-dev --optimize-autoloader
 
 1. Upload project files via FTP/SFTP, including:
 
+- `index.php`
 - `public/`
 - `src/`
 - `data/`
@@ -272,6 +273,7 @@ If one of these works, PHP and the app are fine and only rewrite handling is mis
 ├── data/
 │   └── trips/
 │       └── <trip-id>.json
+├── index.php
 ├── public/
 │   ├── .htaccess
 │   ├── app.js

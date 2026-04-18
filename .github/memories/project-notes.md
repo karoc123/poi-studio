@@ -52,6 +52,8 @@
 - Front controller normalizes `/index.php/api/*` and `/public/index.php/api/*` for hosts without clean rewrites.
 - Front controller also accepts query fallback `?api=/api/...` and returns explicit JSON errors for missing `vendor/autoload.php` or unsupported PHP runtime.
 - Frontend API client tries clean URLs first, then query fallback via `index.php?api=...`.
+- Frontend API client is query-first to avoid noisy 404 probes on hosts without rewrite support.
+- Root `index.php` includes `public/index.php` so `/` works even if root rewrite is unavailable.
 
 ## Testing
 

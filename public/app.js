@@ -62,6 +62,7 @@ const ui = {
   cancelImportLink: document.getElementById("cancelImportLink")
 };
 
+const API_PREFIX = inferApiPrefixFromPathname();
 const API_BASE_CANDIDATES = buildApiBaseCandidates();
 const API_QUERY_SCRIPT_CANDIDATES = buildApiQueryScriptCandidates();
 let activeApiBase = API_BASE_CANDIDATES[0] || "/api";
@@ -70,8 +71,10 @@ let activeApiQueryScript = API_QUERY_SCRIPT_CANDIDATES[0] || "/public/index.php"
 function inferApiPrefixFromPathname() {
   const pathname = String(window.location.pathname || "/");
 
-  if (pathname === "/public" || pathname.startsWith("/public/")) {
-    return "/public";
+  const publicMatch = pathname.match(/^(.*\/public)(?:\/|$)/);
+
+  if (publicMatch && publicMatch[1]) {
+    return publicMatch[1];
   }
 
   const indexPosition = pathname.indexOf("/index.php");
@@ -98,18 +101,19 @@ function buildApiBaseCandidates() {
     candidates.push(normalized);
   }
 
-  const prefix = inferApiPrefixFromPathname();
+  const prefix = API_PREFIX;
 
-  addCandidate("/api");
-
-  if (prefix) {
+  if (prefix && prefix.endsWith("/public")) {
+    addCandidate(`${prefix}/index.php/api`);
     addCandidate(`${prefix}/api`);
   }
 
   addCandidate("/index.php/api");
+  addCandidate("/api");
 
-  if (prefix) {
+  if (prefix && !prefix.endsWith("/public")) {
     addCandidate(`${prefix}/index.php/api`);
+    addCandidate(`${prefix}/api`);
   }
 
   addCandidate("/public/index.php/api");
@@ -139,14 +143,21 @@ function buildApiQueryScriptCandidates() {
     candidates.push(normalized);
   }
 
-  const prefix = inferApiPrefixFromPathname();
+  const prefix = API_PREFIX;
 
-  addCandidate("/public/index.php");
-  addCandidate("/index.php");
+  if (prefix && prefix.endsWith("/public")) {
+    addCandidate(`${prefix}/index.php`);
+    addCandidate("/public/index.php");
+    addCandidate("/index.php");
+    return candidates;
+  }
 
   if (prefix) {
     addCandidate(`${prefix}/index.php`);
   }
+
+  addCandidate("/index.php");
+  addCandidate("/public/index.php");
 
   return candidates;
 }
@@ -169,35 +180,43 @@ async function fetchApi(path, options = {}) {
   let lastResponse = null;
   let lastError = null;
 
-  for (const base of getApiCandidateOrder()) {
-    try {
-      const response = await fetch(`${base}${endpoint}`, options);
+  const strategyOrder = ["query", "base"];
 
-      if (!isJsonApiResponse(response)) {
-        lastResponse = response;
-        continue;
+  for (const strategy of strategyOrder) {
+    if (strategy === "query") {
+      for (const scriptPath of getApiQueryCandidateOrder()) {
+        try {
+          const response = await fetch(`${scriptPath}?api=${encodeURIComponent(apiRoute)}`, options);
+
+          if (!isJsonApiResponse(response)) {
+            lastResponse = response;
+            continue;
+          }
+
+          activeApiQueryScript = scriptPath;
+          return response;
+        } catch (error) {
+          lastError = error;
+        }
       }
 
-      activeApiBase = base;
-      return response;
-    } catch (error) {
-      lastError = error;
+      continue;
     }
-  }
 
-  for (const scriptPath of getApiQueryCandidateOrder()) {
-    try {
-      const response = await fetch(`${scriptPath}?api=${encodeURIComponent(apiRoute)}`, options);
+    for (const base of getApiCandidateOrder()) {
+      try {
+        const response = await fetch(`${base}${endpoint}`, options);
 
-      if (!isJsonApiResponse(response)) {
-        lastResponse = response;
-        continue;
+        if (!isJsonApiResponse(response)) {
+          lastResponse = response;
+          continue;
+        }
+
+        activeApiBase = base;
+        return response;
+      } catch (error) {
+        lastError = error;
       }
-
-      activeApiQueryScript = scriptPath;
-      return response;
-    } catch (error) {
-      lastError = error;
     }
   }
 
