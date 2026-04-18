@@ -62,6 +62,99 @@ const ui = {
   cancelImportLink: document.getElementById("cancelImportLink")
 };
 
+const API_BASE_CANDIDATES = buildApiBaseCandidates();
+let activeApiBase = API_BASE_CANDIDATES[0] || "/api";
+
+function inferApiPrefixFromPathname() {
+  const pathname = String(window.location.pathname || "/");
+
+  if (pathname === "/public" || pathname.startsWith("/public/")) {
+    return "/public";
+  }
+
+  const indexPosition = pathname.indexOf("/index.php");
+
+  if (indexPosition > 0) {
+    return pathname.slice(0, indexPosition);
+  }
+
+  return "";
+}
+
+function buildApiBaseCandidates() {
+  const seen = new Set();
+  const candidates = [];
+
+  function addCandidate(value) {
+    const normalized = String(value || "").replace(/\/+$/, "");
+
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+
+    seen.add(normalized);
+    candidates.push(normalized);
+  }
+
+  const prefix = inferApiPrefixFromPathname();
+
+  addCandidate("/api");
+
+  if (prefix) {
+    addCandidate(`${prefix}/api`);
+  }
+
+  addCandidate("/index.php/api");
+
+  if (prefix) {
+    addCandidate(`${prefix}/index.php/api`);
+  }
+
+  addCandidate("/public/index.php/api");
+
+  return candidates;
+}
+
+function getApiCandidateOrder() {
+  return [
+    activeApiBase,
+    ...API_BASE_CANDIDATES.filter((candidate) => candidate !== activeApiBase)
+  ];
+}
+
+function isJsonApiResponse(response) {
+  const contentType = String(response.headers.get("content-type") || "").toLocaleLowerCase("en");
+  return contentType.includes("application/json");
+}
+
+async function fetchApi(path, options = {}) {
+  const endpoint = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+  let lastResponse = null;
+  let lastError = null;
+
+  for (const base of getApiCandidateOrder()) {
+    try {
+      const response = await fetch(`${base}${endpoint}`, options);
+
+      if (!isJsonApiResponse(response)) {
+        lastResponse = response;
+        continue;
+      }
+
+      activeApiBase = base;
+      return response;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  if (lastResponse) {
+    return lastResponse;
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("API ist nicht erreichbar.");
+}
+
 const map = L.map("map", {
   zoomControl: false,
   preferCanvas: true
@@ -783,7 +876,7 @@ async function savePoints({ reason = "manual", suppressStatus = false } = {}) {
   let saveSucceeded = false;
 
   try {
-    const response = await fetch(`/api/trips/${encodeURIComponent(state.currentTripId)}`, {
+    const response = await fetchApi(`/trips/${encodeURIComponent(state.currentTripId)}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json"
@@ -843,7 +936,7 @@ async function loadTripFromServer(tripId, { fitMap = false } = {}) {
   try {
     showStatus("Trip wird geladen...", "info");
 
-    const response = await fetch(`/api/trips/${encodeURIComponent(tripId)}`, {
+    const response = await fetchApi(`/trips/${encodeURIComponent(tripId)}`, {
       method: "GET",
       headers: {
         Accept: "application/json"
@@ -970,7 +1063,7 @@ async function loadTrips() {
   try {
     showStatus("Trips werden geladen...", "info");
 
-    const response = await fetch("/api/trips", {
+    const response = await fetchApi("/trips", {
       method: "GET",
       headers: {
         Accept: "application/json"
@@ -1217,7 +1310,7 @@ function isLikelyShortGoogleMapsLink(rawLink) {
 }
 
 async function expandGoogleMapsLink(rawLink) {
-  const response = await fetch("/api/maps/resolve", {
+  const response = await fetchApi("/maps/resolve", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

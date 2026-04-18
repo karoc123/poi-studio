@@ -8,7 +8,38 @@ use PoiStudio\TripRepository;
 require dirname(__DIR__) . '/vendor/autoload.php';
 
 $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
-$path = parse_url($requestUri, PHP_URL_PATH);
+$rawPath = parse_url($requestUri, PHP_URL_PATH);
+
+if (!is_string($rawPath) || $rawPath === '') {
+    $rawPath = '/';
+}
+
+$normalizedPath = $rawPath;
+
+if (preg_match('#^/(?:public/)?index\.php(?:/|$)#', $normalizedPath) === 1) {
+    $normalizedPath = (string) preg_replace('#^/(?:public/)?index\.php#', '', $normalizedPath, 1);
+}
+
+if ($normalizedPath === '/public/api' || str_starts_with($normalizedPath, '/public/api/')) {
+    $normalizedPath = substr($normalizedPath, strlen('/public'));
+}
+
+if ($normalizedPath === '') {
+    $normalizedPath = '/';
+}
+
+if (!str_starts_with($normalizedPath, '/')) {
+    $normalizedPath = '/' . $normalizedPath;
+}
+
+$query = parse_url($requestUri, PHP_URL_QUERY);
+$normalizedRequestUri = $normalizedPath;
+
+if (is_string($query) && $query !== '') {
+    $normalizedRequestUri .= '?' . $query;
+}
+
+$path = parse_url($normalizedRequestUri, PHP_URL_PATH);
 
 if (!is_string($path)) {
     $path = '/';
@@ -50,7 +81,7 @@ if (str_starts_with($path, '/api/')) {
     );
 
     $app = new ApiApp($repository);
-    $result = $app->handle($method, $requestUri, $jsonBody);
+    $result = $app->handle($method, $normalizedRequestUri, $jsonBody);
 
     http_response_code($result->statusCode);
     header('Content-Type: application/json; charset=utf-8');
