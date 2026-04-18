@@ -8,18 +8,13 @@ use JsonException;
 
 final class TripRepository
 {
-    private const DEFAULT_TRIP_ID = 'points';
     private const TRIP_ID_PATTERN = '/^[a-z0-9][a-z0-9._-]{0,79}$/i';
 
     private bool $initialized = false;
 
-    /**
-     * @param list<string> $legacyFiles
-     */
     public function __construct(
         private readonly string $dataDir,
-        private readonly string $tripsDir,
-        private readonly array $legacyFiles = []
+        private readonly string $tripsDir
     ) {
     }
 
@@ -120,10 +115,6 @@ final class TripRepository
             throw new ApiException(500, 'Could not create trips directory.');
         }
 
-        if ($this->listTripFiles() === []) {
-            $this->migrateLegacyData();
-        }
-
         $this->initialized = true;
     }
 
@@ -140,29 +131,6 @@ final class TripRepository
         }
 
         return array_values(array_filter($files, 'is_file'));
-    }
-
-    private function migrateLegacyData(): void
-    {
-        foreach ($this->legacyFiles as $legacyFile) {
-            if (!is_file($legacyFile)) {
-                continue;
-            }
-
-            try {
-                $parsed = $this->readJsonFile($legacyFile);
-                $normalized = $this->normalizeTripPayload($parsed, self::DEFAULT_TRIP_ID);
-            } catch (ApiException) {
-                continue;
-            }
-
-            $tripName = trim($normalized['tripName']) !== ''
-                ? $normalized['tripName']
-                : self::DEFAULT_TRIP_ID;
-
-            $this->writeTripFile(self::DEFAULT_TRIP_ID, $tripName, $normalized['pois']);
-            return;
-        }
     }
 
     /**
@@ -235,27 +203,13 @@ final class TripRepository
      */
     private function normalizeTripPayload(array $payload, string $fallbackName): array
     {
-        if (array_is_list($payload)) {
-            $pois = array_values($payload);
-            $normalizedPois = [];
-
-            foreach ($pois as $index => $poi) {
-                $normalizedPois[] = $this->normalizePoi($poi, $index);
-            }
-
-            return [
-                'tripName' => $fallbackName,
-                'pois' => $normalizedPois,
-            ];
-        }
-
-        $list = $payload['pois'] ?? $payload['points'] ?? null;
+        $list = $payload['pois'] ?? null;
 
         if (!is_array($list)) {
-            throw new ApiException(400, 'Payload requires a "pois" or "points" array.');
+            throw new ApiException(400, 'Payload requires a "pois" array.');
         }
 
-        $tripNameRaw = $payload['tripName'] ?? $payload['name'] ?? $fallbackName;
+        $tripNameRaw = $payload['tripName'] ?? $fallbackName;
         $tripName = trim((string) $tripNameRaw);
 
         if ($tripName === '') {

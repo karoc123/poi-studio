@@ -218,14 +218,24 @@ body {
 
 @media (max-width: 767px) {
   #controlPanel {
+    height: min(74vh, calc(100dvh - 1rem));
     transform: translateY(calc(100% + 1rem));
     opacity: 0;
+  }
+
+  #controlPanel > div,
+  #controlPanel section {
+    min-height: 0;
   }
 
   #controlPanel.is-open {
     transform: translateY(0);
     opacity: 1;
     pointer-events: auto;
+  }
+
+  #poiList {
+    max-height: 100%;
   }
 
   .poi-actions,

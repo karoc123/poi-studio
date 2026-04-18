@@ -22,6 +22,7 @@
 - Dedicated current-location button exists on map.
 - POI can be imported from Google Maps link, including short-link resolve via API.
 - POI name/description can be edited.
+- POI list supports client-side search by name and description.
 
 ## Persistence Rules
 
@@ -38,13 +39,11 @@
 - `PUT /api/trips/:tripId`
 - Extra helper endpoint for maps short links: `POST /api/maps/resolve`.
 
-## Migration
+## Storage Rules
 
-- If no files exist in `data/trips/`, bootstrap from first valid legacy file:
-  1. `data/points.json`
-  2. `points.json`
-  3. `pois.json`
+- Points are loaded exclusively from `data/trips/`.
+- Legacy fallback files are intentionally ignored.
 
 ## Testing
 
-- Pest feature tests cover health, list/get/save/validate flows and legacy migration.
+- Pest feature tests cover health, list/get/save/validate flows and strict trips-only storage behavior.

@@ -16,6 +16,7 @@ It is designed for local usage and simple shared-hosting deployment:
 - Create new trip in UI, persist only after first saved POI
 - Add POIs by map click
 - Add POIs from Google Maps links (including short links via server-side resolve)
+- Search POIs by name and description in the active trip
 - Edit POI name and description
 - One-click delete (`Loeschen`)
 - POI popup includes navigation links
@@ -54,6 +55,12 @@ Run all tests (Pest):
 composer test
 ```
 
+Run lint + tests with one command:
+
+```bash
+composer run check
+```
+
 Current test scope covers API behavior for:
 
 - health endpoint
@@ -62,7 +69,7 @@ Current test scope covers API behavior for:
 - saving and normalizing trip payloads
 - validation errors
 - missing trip handling
-- legacy migration bootstrap
+- strict storage in `data/trips/`
 
 ## Data Model
 
@@ -87,17 +94,9 @@ Trip JSON schema:
 
 `position` is normalized and persisted as string `"lat, lng"`.
 
-## Startup Migration
+## Storage Rules
 
-If `data/trips` is empty on startup, the backend migrates from the first valid legacy file:
-
-1. `data/points.json`
-2. `points.json`
-3. `pois.json`
-
-The migrated destination file is:
-
-- `data/trips/points.json`
+POI data is loaded exclusively from files inside `data/trips/`.
 
 ## API
 
@@ -194,6 +193,45 @@ The project includes:
 - `public/.htaccess` to route non-file requests to `public/index.php`
 
 This enables clean routing without exposing internal source or data folders.
+
+## Deploy on Shared Hosting (File Upload Only)
+
+This setup targets classic shared hosting where PHP is available, but deployment is done by uploading files.
+
+1. Build dependencies locally:
+
+```bash
+composer install --no-dev --optimize-autoloader
+```
+
+1. Upload project files via FTP/SFTP, including:
+
+- `public/`
+- `src/`
+- `data/`
+- `vendor/`
+- `.htaccess`
+- `public/.htaccess`
+- `composer.json` and `composer.lock` (optional but recommended for traceability)
+
+1. Ensure writable storage for trip files:
+
+- `data/trips/` must be writable by the PHP process.
+
+1. Configure web root:
+
+- Preferred: point document root to `public/`.
+- Alternative: keep project root as web root and rely on included `.htaccess` rewrite rules.
+
+1. Verify required PHP extensions on hoster:
+
+- `curl`
+- `json`
+
+1. Open your domain and validate:
+
+- App UI loads.
+- API health endpoint returns success: `/api/health`.
 
 ## Project Structure
 

@@ -20,6 +20,7 @@ const state = {
   saveQueued: false,
   autoSaveEnabled: true,
   panelOpen: false,
+  poiSearchQuery: "",
   userLocationMarker: null,
   userLocationCircle: null
 };
@@ -35,6 +36,7 @@ const ui = {
   autoSaveToggle: document.getElementById("autoSaveToggle"),
   poiList: document.getElementById("poiList"),
   poiCount: document.getElementById("poiCount"),
+  poiSearchInput: document.getElementById("poiSearchInput"),
   locateButton: document.getElementById("locateButton"),
   controlPanel: document.getElementById("controlPanel"),
   panelToggleButton: document.getElementById("panelToggleButton"),
@@ -400,13 +402,25 @@ function renderMarkers() {
 function renderPoiList() {
   syncCurrentTripPointCount();
 
-  if (state.pois.length === 0) {
+  const visiblePois = getFilteredPois();
+
+  if (state.poiSearchQuery) {
+    ui.poiCount.textContent = `${visiblePois.length}/${state.pois.length}`;
+  }
+
+  if (visiblePois.length === 0) {
+    if (state.poiSearchQuery) {
+      ui.poiList.innerHTML =
+        '<li class="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600">Keine Treffer fuer die aktuelle Suche.</li>';
+      return;
+    }
+
     ui.poiList.innerHTML =
       '<li class="rounded-lg bg-slate-100 px-3 py-2 text-sm text-slate-600">Noch keine Punkte vorhanden.</li>';
     return;
   }
 
-  const listMarkup = state.pois
+  const listMarkup = visiblePois
     .map((poi) => {
       const name = escapeHtml(poi.name);
       const description = escapeHtml(poi.description || "Keine Beschreibung");
@@ -429,6 +443,23 @@ function renderPoiList() {
     .join("");
 
   ui.poiList.innerHTML = listMarkup;
+}
+
+function normalizeSearchText(value) {
+  return String(value || "").toLocaleLowerCase("de").trim();
+}
+
+function getFilteredPois() {
+  if (!state.poiSearchQuery) {
+    return state.pois;
+  }
+
+  return state.pois.filter((poi) => {
+    const name = normalizeSearchText(poi.name);
+    const description = normalizeSearchText(poi.description);
+
+    return name.includes(state.poiSearchQuery) || description.includes(state.poiSearchQuery);
+  });
 }
 
 function fitMapToPois() {
@@ -1068,11 +1099,11 @@ function extractLatLngFromGoogleUrl(url) {
     decodedHref = url.href;
   }
 
-  const exactMatch = decodedHref.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+  const placeAtMatch = decodedHref.match(/\/place\/[^/]+\/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/i);
 
-  if (exactMatch) {
-    const lat = Number(exactMatch[1]);
-    const lng = Number(exactMatch[2]);
+  if (placeAtMatch) {
+    const lat = Number(placeAtMatch[1]);
+    const lng = Number(placeAtMatch[2]);
 
     if (isValidLatLng(lat, lng)) {
       return [lat, lng];
@@ -1095,6 +1126,17 @@ function extractLatLngFromGoogleUrl(url) {
   if (pathMatch) {
     const lat = Number(pathMatch[1]);
     const lng = Number(pathMatch[2]);
+
+    if (isValidLatLng(lat, lng)) {
+      return [lat, lng];
+    }
+  }
+
+  const exactMatch = decodedHref.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+
+  if (exactMatch) {
+    const lat = Number(exactMatch[1]);
+    const lng = Number(exactMatch[2]);
 
     if (isValidLatLng(lat, lng)) {
       return [lat, lng];
@@ -1450,6 +1492,11 @@ function wireEvents() {
     }
 
     showStatus(state.autoSaveEnabled ? "Auto-Save aktiviert." : "Auto-Save deaktiviert.", "info");
+  });
+
+  ui.poiSearchInput.addEventListener("input", () => {
+    state.poiSearchQuery = normalizeSearchText(ui.poiSearchInput.value);
+    renderPoiList();
   });
 
   ui.tripSelect.addEventListener("change", async () => {

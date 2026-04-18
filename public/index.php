@@ -46,12 +46,7 @@ if (str_starts_with($path, '/api/')) {
 
     $repository = new TripRepository(
         dataDir: dirname(__DIR__) . '/data',
-        tripsDir: dirname(__DIR__) . '/data/trips',
-        legacyFiles: [
-            dirname(__DIR__) . '/data/points.json',
-            dirname(__DIR__) . '/points.json',
-            dirname(__DIR__) . '/pois.json',
-        ]
+        tripsDir: dirname(__DIR__) . '/data/trips'
     );
 
     $app = new ApiApp($repository);

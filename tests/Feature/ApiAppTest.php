@@ -14,12 +14,7 @@ beforeEach(function (): void {
 
     $this->repository = new TripRepository(
         dataDir: $dataDir,
-        tripsDir: $tripsDir,
-        legacyFiles: [
-            $dataDir . '/points.json',
-            $this->tempRoot . '/points.json',
-            $this->tempRoot . '/pois.json',
-        ]
+        tripsDir: $tripsDir
     );
 
     $this->app = new ApiApp($this->repository);
@@ -122,6 +117,25 @@ it('returns 400 for invalid trip payload', function (): void {
         ->and($result->payload['error'])->toBe('Could not save trip');
 });
 
+it('returns 400 when payload uses points alias instead of pois', function (): void {
+    $payload = [
+        'tripName' => 'Broken Trip',
+        'points' => [
+            [
+                'name' => 'Legacy style',
+                'position' => '59.1, 18.1',
+                'description' => '',
+            ],
+        ],
+    ];
+
+    $result = $this->app->handle('PUT', '/api/trips/broken_alias', $payload);
+
+    expect($result->statusCode)->toBe(400)
+        ->and($result->payload)->toHaveKey('error')
+        ->and($result->payload['error'])->toBe('Could not save trip');
+});
+
 it('returns 404 for unknown trip id', function (): void {
     $result = $this->app->handle('GET', '/api/trips/not_found', null);
 
@@ -145,7 +159,7 @@ it('rejects non-google maps links in resolver endpoint', function (): void {
         ->and($result->payload['error'])->toBe('Could not resolve maps link');
 });
 
-it('migrates legacy points file when trips folder is empty', function (): void {
+it('ignores legacy files outside data/trips', function (): void {
     writeJson(
         $this->tempRoot . '/data/points.json',
         [
@@ -163,14 +177,8 @@ it('migrates legacy points file when trips folder is empty', function (): void {
     $result = $this->app->handle('GET', '/api/trips', null);
 
     expect($result->statusCode)->toBe(200)
-        ->and($result->payload['trips'])->toHaveCount(1)
-        ->and($result->payload['trips'][0]['id'])->toBe('points');
-
-    $migrated = readJson($this->tempRoot . '/data/trips/points.json');
-
-    expect($migrated['tripName'])->toBe('Legacy Trip')
-        ->and($migrated['pois'])->toHaveCount(1)
-        ->and($migrated['pois'][0]['name'])->toBe('Legacy POI');
+        ->and($result->payload['trips'])->toHaveCount(0)
+        ->and(file_exists($this->tempRoot . '/data/trips/points.json'))->toBeFalse();
 });
 
 /**

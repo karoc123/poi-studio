@@ -21,7 +21,12 @@
   },
   "scripts": {
     "serve": "php -S 127.0.0.1:3000 -t public public/router.php",
-    "test": "vendor/bin/pest tests"
+    "test": "vendor/bin/pest tests",
+    "lint": "set -e; for file in $(find src public tests -type f -name '*.php'); do php -l \"$file\" >/dev/null; done; echo 'PHP lint passed'",
+    "check": [
+      "@lint",
+      "@test"
+    ]
   },
   "config": {
     "allow-plugins": {

@@ -2,6 +2,21 @@
     "tripName": "Schweden 2026 - Viola & Tobi",
     "pois": [
         {
+            "name": "Skallbergsgrottan",
+            "position": "63.500519, 18.932827",
+            "description": "Eine beeindruckende Höhle."
+        },
+        {
+            "name": "Ikea-Museum",
+            "position": "56.552271, 14.134503",
+            "description": "Das Ikea-Museum in Älmhult, Schweden, bietet einen Einblick in die Geschichte und Entwicklung des weltbekannten Möbelunternehmens."
+        },
+        {
+            "name": "Flataklocken, Sveriges geografiska mittpunkt",
+            "position": "62.38663, 16.321306",
+            "description": "Der geografische Mittelpunkt Schwedens, markiert durch eine Steintafel auf einem Felsen in der Nähe von Flataklocken."
+        },
+        {
             "name": "Picassoskulpturen Kristinenhamn",
             "position": "59.275338, 14.053477",
             "description": ""
