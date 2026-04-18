@@ -1,0 +1,243 @@
+:root {
+  --status-info-bg: #e0f2fe;
+  --status-info-text: #0f4c81;
+  --status-success-bg: #dcfce7;
+  --status-success-text: #14532d;
+  --status-error-bg: #fee2e2;
+  --status-error-text: #7f1d1d;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  background: radial-gradient(circle at 10% 10%, #f6fbf9 0%, #d8efe9 42%, #d2e9f8 100%);
+}
+
+#map {
+  z-index: 100;
+}
+
+.map-atmosphere {
+  z-index: 150;
+  background:
+    radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0) 30%),
+    radial-gradient(circle at 15% 88%, rgba(190, 242, 233, 0.48), rgba(190, 242, 233, 0) 42%);
+}
+
+#panelToggleButton,
+#controlPanel,
+#addPointSheet,
+#importLinkSheet,
+#locateButton {
+  animation: panel-enter 220ms ease-out;
+}
+
+#controlPanel,
+#addPointSheet,
+#importLinkSheet {
+  touch-action: pan-y;
+}
+
+#controlPanel {
+  transition: transform 220ms ease, opacity 220ms ease;
+  overscroll-behavior: contain;
+}
+
+#controlPanel:not(.is-open) {
+  pointer-events: none;
+}
+
+#poiList {
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+#poiList li {
+  animation: poi-enter 220ms ease;
+}
+
+#statusMessage[data-kind="info"] {
+  background: var(--status-info-bg);
+  color: var(--status-info-text);
+}
+
+#statusMessage[data-kind="success"] {
+  background: var(--status-success-bg);
+  color: var(--status-success-text);
+}
+
+#statusMessage[data-kind="error"] {
+  background: var(--status-error-bg);
+  color: var(--status-error-text);
+}
+
+#importStatus[data-kind="info"] {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+#importStatus[data-kind="success"] {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+#importStatus[data-kind="error"] {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.poi-card {
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.8rem;
+  background: rgba(248, 250, 252, 0.9);
+  padding: 0.65rem 0.75rem;
+}
+
+.poi-card h3 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 0.94rem;
+}
+
+.poi-card p {
+  margin: 0.25rem 0 0;
+  color: #334155;
+  font-size: 0.79rem;
+  line-height: 1.35;
+}
+
+.poi-actions,
+.poi-popup-actions {
+  margin-top: 0.55rem;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.poi-actions button,
+.poi-popup-actions button {
+  border: 0;
+  border-radius: 0.55rem;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-focus {
+  background: #0ea5e9;
+  color: #f8fafc;
+}
+
+.btn-edit {
+  background: #f59e0b;
+  color: #111827;
+}
+
+.btn-delete {
+  background: #ef4444;
+  color: #fef2f2;
+}
+
+.poi-popup h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+.poi-popup p {
+  margin: 0.3rem 0 0;
+  color: #334155;
+  font-size: 0.8rem;
+}
+
+.poi-popup .poi-popup-position {
+  margin-top: 0.4rem;
+  font-size: 0.75rem;
+  color: #475569;
+}
+
+.poi-popup-links {
+  margin-top: 0.5rem;
+  display: grid;
+  gap: 0.3rem;
+}
+
+.poi-popup-links a {
+  display: inline-block;
+  border-radius: 0.5rem;
+  background: #ecfeff;
+  color: #155e75;
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 0.28rem 0.45rem;
+  text-decoration: none;
+}
+
+.poi-popup-links a:hover {
+  background: #cffafe;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 0.8rem;
+}
+
+.leaflet-control-zoom {
+  box-shadow: 0 10px 22px rgba(15, 23, 42, 0.22);
+}
+
+.leaflet-control-zoom a {
+  color: #0f172a;
+}
+
+@keyframes panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.99);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes poi-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 767px) {
+  #controlPanel {
+    transform: translateY(calc(100% + 1rem));
+    opacity: 0;
+  }
+
+  #controlPanel.is-open {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .poi-actions,
+  .poi-popup-actions {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 768px) {
+  #controlPanel {
+    transform: none !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+  }
+}

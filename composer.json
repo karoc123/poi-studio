@@ -1,0 +1,31 @@
+{
+  "name": "tobi-viola/poi-studio",
+  "description": "Mobile-first POI trip planner with Leaflet and PHP API",
+  "type": "project",
+  "license": "GPL-3.0-or-later",
+  "require": {
+    "php": "^8.3"
+  },
+  "require-dev": {
+    "pestphp/pest": "^2.36"
+  },
+  "autoload": {
+    "psr-4": {
+      "PoiStudio\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "serve": "php -S 127.0.0.1:3000 -t public public/router.php",
+    "test": "vendor/bin/pest tests"
+  },
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}

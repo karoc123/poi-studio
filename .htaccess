@@ -1,0 +1,8 @@
+RewriteEngine On
+
+RewriteRule ^(data|src|tests|vendor)/ - [F,L]
+
+RewriteRule ^$ public/ [L]
+
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L]

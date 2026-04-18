@@ -1,0 +1,16 @@
+/vendor/
+/node_modules/
+
+.phpunit.result.cache
+/.pest
+/coverage/
+
+*.log
+npm-debug.log*
+
+.DS_Store
+.idea/
+.vscode/
+
+.env
+.env.local
