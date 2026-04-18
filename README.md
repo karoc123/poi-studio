@@ -251,6 +251,18 @@ Use one of these approaches:
 composer install --no-dev --optimize-autoloader
 ```
 
+### Troubleshooting: `404` on `/api/trips`
+
+If `https://your-domain/api/trips` returns `404`, your host likely does not apply clean-URL rewrite rules for that request path.
+
+Check these fallback endpoints:
+
+- `/index.php/api/trips`
+- `/public/index.php/api/trips`
+- `/public/index.php?api=/api/trips`
+
+If one of these works, PHP and the app are fine and only rewrite handling is missing on the host setup.
+
 ## Project Structure
 
 ```text

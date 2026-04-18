@@ -63,7 +63,9 @@ const ui = {
 };
 
 const API_BASE_CANDIDATES = buildApiBaseCandidates();
+const API_QUERY_SCRIPT_CANDIDATES = buildApiQueryScriptCandidates();
 let activeApiBase = API_BASE_CANDIDATES[0] || "/api";
+let activeApiQueryScript = API_QUERY_SCRIPT_CANDIDATES[0] || "/public/index.php";
 
 function inferApiPrefixFromPathname() {
   const pathname = String(window.location.pathname || "/");
@@ -122,6 +124,40 @@ function getApiCandidateOrder() {
   ];
 }
 
+function buildApiQueryScriptCandidates() {
+  const seen = new Set();
+  const candidates = [];
+
+  function addCandidate(value) {
+    const normalized = String(value || "").replace(/\/+$/, "");
+
+    if (!normalized || seen.has(normalized)) {
+      return;
+    }
+
+    seen.add(normalized);
+    candidates.push(normalized);
+  }
+
+  const prefix = inferApiPrefixFromPathname();
+
+  addCandidate("/public/index.php");
+  addCandidate("/index.php");
+
+  if (prefix) {
+    addCandidate(`${prefix}/index.php`);
+  }
+
+  return candidates;
+}
+
+function getApiQueryCandidateOrder() {
+  return [
+    activeApiQueryScript,
+    ...API_QUERY_SCRIPT_CANDIDATES.filter((candidate) => candidate !== activeApiQueryScript)
+  ];
+}
+
 function isJsonApiResponse(response) {
   const contentType = String(response.headers.get("content-type") || "").toLocaleLowerCase("en");
   return contentType.includes("application/json");
@@ -129,6 +165,7 @@ function isJsonApiResponse(response) {
 
 async function fetchApi(path, options = {}) {
   const endpoint = String(path || "").startsWith("/") ? String(path) : `/${path}`;
+  const apiRoute = endpoint.startsWith("/api/") ? endpoint : `/api${endpoint}`;
   let lastResponse = null;
   let lastError = null;
 
@@ -142,6 +179,22 @@ async function fetchApi(path, options = {}) {
       }
 
       activeApiBase = base;
+      return response;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+
+  for (const scriptPath of getApiQueryCandidateOrder()) {
+    try {
+      const response = await fetch(`${scriptPath}?api=${encodeURIComponent(apiRoute)}`, options);
+
+      if (!isJsonApiResponse(response)) {
+        lastResponse = response;
+        continue;
+      }
+
+      activeApiQueryScript = scriptPath;
       return response;
     } catch (error) {
       lastError = error;

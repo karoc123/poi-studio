@@ -5,7 +5,14 @@ declare(strict_types=1);
 use PoiStudio\ApiApp;
 use PoiStudio\TripRepository;
 
-require dirname(__DIR__) . '/vendor/autoload.php';
+function startsWith(string $haystack, string $needle): bool
+{
+    if ($needle === '') {
+        return true;
+    }
+
+    return strncmp($haystack, $needle, strlen($needle)) === 0;
+}
 
 $requestUri = (string) ($_SERVER['REQUEST_URI'] ?? '/');
 $rawPath = parse_url($requestUri, PHP_URL_PATH);
@@ -15,20 +22,35 @@ if (!is_string($rawPath) || $rawPath === '') {
 }
 
 $normalizedPath = $rawPath;
+$apiRoute = $_GET['api'] ?? null;
 
-if (preg_match('#^/(?:public/)?index\.php(?:/|$)#', $normalizedPath) === 1) {
-    $normalizedPath = (string) preg_replace('#^/(?:public/)?index\.php#', '', $normalizedPath, 1);
-}
+if (is_string($apiRoute) && trim($apiRoute) !== '') {
+    $normalizedPath = trim($apiRoute);
 
-if ($normalizedPath === '/public/api' || str_starts_with($normalizedPath, '/public/api/')) {
-    $normalizedPath = substr($normalizedPath, strlen('/public'));
+    if (!startsWith($normalizedPath, '/')) {
+        $normalizedPath = '/' . $normalizedPath;
+    }
+
+    if ($normalizedPath === '/api') {
+        $normalizedPath = '/api/';
+    } elseif (!startsWith($normalizedPath, '/api/')) {
+        $normalizedPath = '/api' . $normalizedPath;
+    }
+} else {
+    if (preg_match('#^/(?:public/)?index\.php(?:/|$)#', $normalizedPath) === 1) {
+        $normalizedPath = (string) preg_replace('#^/(?:public/)?index\.php#', '', $normalizedPath, 1);
+    }
+
+    if ($normalizedPath === '/public/api' || startsWith($normalizedPath, '/public/api/')) {
+        $normalizedPath = substr($normalizedPath, strlen('/public'));
+    }
 }
 
 if ($normalizedPath === '') {
     $normalizedPath = '/';
 }
 
-if (!str_starts_with($normalizedPath, '/')) {
+if (!startsWith($normalizedPath, '/')) {
     $normalizedPath = '/' . $normalizedPath;
 }
 
@@ -45,7 +67,39 @@ if (!is_string($path)) {
     $path = '/';
 }
 
-if (str_starts_with($path, '/api/')) {
+if (startsWith($path, '/api/')) {
+    if (PHP_VERSION_ID < 80100) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+
+        echo json_encode(
+            [
+                'error' => 'Unsupported PHP version',
+                'details' => 'PHP 8.1+ required for API runtime. Detected: ' . PHP_VERSION,
+            ],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+        exit;
+    }
+
+    $autoloadPath = dirname(__DIR__) . '/vendor/autoload.php';
+
+    if (!is_file($autoloadPath)) {
+        http_response_code(500);
+        header('Content-Type: application/json; charset=utf-8');
+
+        echo json_encode(
+            [
+                'error' => 'Dependencies missing',
+                'details' => 'vendor/autoload.php not found. Run composer install --no-dev --optimize-autoloader and upload vendor/.',
+            ],
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+        exit;
+    }
+
+    require $autoloadPath;
+
     $method = strtoupper((string) ($_SERVER['REQUEST_METHOD'] ?? 'GET'));
     $jsonBody = null;
 
@@ -76,8 +130,8 @@ if (str_starts_with($path, '/api/')) {
     }
 
     $repository = new TripRepository(
-        dataDir: dirname(__DIR__) . '/data',
-        tripsDir: dirname(__DIR__) . '/data/trips'
+        dirname(__DIR__) . '/data',
+        dirname(__DIR__) . '/data/trips'
     );
 
     $app = new ApiApp($repository);

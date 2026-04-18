@@ -49,6 +49,9 @@
 
 - Root and public `.htaccess` rules are wrapped in `IfModule mod_rewrite.c`.
 - Root rewrite condition uses `REQUEST_URI !/public/` to avoid subpath rewrite loops.
+- Front controller normalizes `/index.php/api/*` and `/public/index.php/api/*` for hosts without clean rewrites.
+- Front controller also accepts query fallback `?api=/api/...` and returns explicit JSON errors for missing `vendor/autoload.php` or unsupported PHP runtime.
+- Frontend API client tries clean URLs first, then query fallback via `index.php?api=...`.
 
 ## Testing
 
