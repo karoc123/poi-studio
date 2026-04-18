@@ -1,8 +1,11 @@
+<IfModule mod_rewrite.c>
 RewriteEngine On
 
-RewriteRule ^(data|src|tests|vendor)/ - [F,L]
+RewriteRule ^(data|src|tests|vendor)(/|$) - [F,L]
 
 RewriteRule ^$ public/ [L]
 
-RewriteCond %{REQUEST_URI} !^/public/
+# Avoid loops when app is deployed in a subpath (for example /myapp/public/...)
+RewriteCond %{REQUEST_URI} !/public/
 RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

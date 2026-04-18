@@ -108,6 +108,13 @@ body {
   line-height: 1.35;
 }
 
+.poi-hit {
+  background: #fde68a;
+  color: #1f2937;
+  border-radius: 0.2rem;
+  padding: 0 0.12rem;
+}
+
 .poi-actions,
 .poi-popup-actions {
   margin-top: 0.55rem;

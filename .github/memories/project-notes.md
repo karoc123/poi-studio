@@ -23,6 +23,7 @@
 - POI can be imported from Google Maps link, including short-link resolve via API.
 - POI name/description can be edited.
 - POI list supports client-side search by name and description.
+- Search UX highlights matching terms in POI name/description.
 
 ## Persistence Rules
 
@@ -43,6 +44,11 @@
 
 - Points are loaded exclusively from `data/trips/`.
 - Legacy fallback files are intentionally ignored.
+
+## Routing Notes
+
+- Root and public `.htaccess` rules are wrapped in `IfModule mod_rewrite.c`.
+- Root rewrite condition uses `REQUEST_URI !/public/` to avoid subpath rewrite loops.
 
 ## Testing
 

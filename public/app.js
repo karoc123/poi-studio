@@ -20,6 +20,7 @@ const state = {
   saveQueued: false,
   autoSaveEnabled: true,
   panelOpen: false,
+  poiSearchQueryRaw: "",
   poiSearchQuery: "",
   userLocationMarker: null,
   userLocationCircle: null
@@ -422,8 +423,8 @@ function renderPoiList() {
 
   const listMarkup = visiblePois
     .map((poi) => {
-      const name = escapeHtml(poi.name);
-      const description = escapeHtml(poi.description || "Keine Beschreibung");
+      const name = highlightSearchMatch(poi.name);
+      const description = highlightSearchMatch(poi.description || "Keine Beschreibung");
       const position = escapeHtml(poi.position);
       const id = escapeHtml(poi.id);
 
@@ -447,6 +448,36 @@ function renderPoiList() {
 
 function normalizeSearchText(value) {
   return String(value || "").toLocaleLowerCase("de").trim();
+}
+
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function buildSearchHighlightRegex() {
+  const rawQuery = String(state.poiSearchQueryRaw || "").trim();
+
+  if (!rawQuery) {
+    return null;
+  }
+
+  return new RegExp(`(${escapeRegExp(rawQuery)})`, "ig");
+}
+
+function highlightSearchMatch(value) {
+  const safeText = escapeHtml(value);
+
+  if (!state.poiSearchQuery) {
+    return safeText;
+  }
+
+  const regex = buildSearchHighlightRegex();
+
+  if (!regex) {
+    return safeText;
+  }
+
+  return safeText.replace(regex, '<mark class="poi-hit">$1</mark>');
 }
 
 function getFilteredPois() {
@@ -1495,6 +1526,7 @@ function wireEvents() {
   });
 
   ui.poiSearchInput.addEventListener("input", () => {
+    state.poiSearchQueryRaw = ui.poiSearchInput.value;
     state.poiSearchQuery = normalizeSearchText(ui.poiSearchInput.value);
     renderPoiList();
   });

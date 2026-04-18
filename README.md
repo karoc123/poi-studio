@@ -26,7 +26,7 @@ It is designed for local usage and simple shared-hosting deployment:
 ## Requirements
 
 - PHP 8.3+ (8.5 recommended for production if available)
-- Composer
+- Composer (for local development/build)
 - PHP extensions: `curl`, `json`
 
 ## Quick Start
@@ -198,6 +198,8 @@ This enables clean routing without exposing internal source or data folders.
 
 This setup targets classic shared hosting where PHP is available, but deployment is done by uploading files.
 
+Recommended deployment mode for shared hosting: run Composer locally, then upload `vendor/` together with project files.
+
 1. Build dependencies locally:
 
 ```bash
@@ -232,6 +234,22 @@ composer install --no-dev --optimize-autoloader
 
 - App UI loads.
 - API health endpoint returns success: `/api/health`.
+
+### Troubleshooting: Composer Fails on Shared Host
+
+If host-side `composer install` fails with errors similar to:
+
+"Return type of Symfony\\Component\\Console\\Helper\\HelperSet::getIterator() ... should be compatible with IteratorAggregate::getIterator()"
+
+then the host likely uses an outdated Composer binary (often Composer 1.x) that is not compatible with newer PHP runtimes.
+
+Use one of these approaches:
+
+1. Preferred: install dependencies locally and upload `vendor/`.
+
+```bash
+composer install --no-dev --optimize-autoloader
+```
 
 ## Project Structure
 
