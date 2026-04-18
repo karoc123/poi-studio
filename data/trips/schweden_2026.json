@@ -1,0 +1,245 @@
+{
+  "tripName": "Schweden 2026 - Viola & Tobi",
+  "pois": [
+    {
+      "name": "Buarbreen carpark",
+      "position": "60.0447, 6.4774",
+      "description": "The starting point for the hike to the Buarbreen glacier, offering parking and direct access to the trail along the Jordalselvi river."
+    },
+    {
+      "name": "Tjørnadalsfossen",
+      "position": "60.0231, 6.5653",
+      "description": "A magnificent waterfall located near Odda, featuring a series of drops that are particularly powerful during the spring melt."
+    },
+    {
+      "name": "Buarbreen",
+      "position": "60.05, 6.4167",
+      "description": "An outlet glacier of the massive Folgefonna glacier, famous for its accessible blue ice and dramatic valley views."
+    },
+    {
+      "name": "Trolltunga Hike Starting Point",
+      "position": "60.1331, 6.6265",
+      "description": "The Skjeggedal trailhead, which serves as the primary gateway for the world-famous 28km round-trip hike to the 'Troll's Tongue'."
+    },
+    {
+      "name": "Kjerag",
+      "position": "59.0347, 6.5775",
+      "description": "A mountain plateau in Lysefjord featuring the famous Kjeragbolten, a boulder wedged in a mountain crevasse 1,000 meters above the sea."
+    },
+    {
+      "name": "Eidfjord",
+      "position": "60.4675, 7.0719",
+      "description": "A picturesque village at the head of the Eidfjorden, serving as a hub for visiting the Hardangervidda plateau and Vøringfossen."
+    },
+    {
+      "name": "IKEA Forus",
+      "position": "58.8872, 5.7211",
+      "description": "A large commercial landmark located in the Forus business district between Stavanger and Sandnes."
+    },
+    {
+      "name": "Rondane-Nationalpark",
+      "position": "61.8415, 9.782",
+      "description": "Norway's oldest national park, characterized by high peaks, vast plateaus, and one of the country's last wild reindeer herds."
+    },
+    {
+      "name": "Svandalsfoss",
+      "position": "59.6252, 6.2904",
+      "description": "An impressive waterfall near Sauda where the spray often reaches the road; it features a scenic staircase for hikers."
+    },
+    {
+      "name": "Trollpikken",
+      "position": "58.4695, 6.0803",
+      "description": "A uniquely shaped rock formation near Egersund that has become a popular local hiking destination."
+    },
+    {
+      "name": "Geirangerfjord",
+      "position": "62.1015, 7.0941",
+      "description": "A UNESCO World Heritage site known for its deep blue water, steep mountain walls, and famous waterfalls like the Seven Sisters."
+    },
+    {
+      "name": "Vøringfossen",
+      "position": "60.4266, 7.2515",
+      "description": "One of Norway's most famous waterfalls, with a total drop of 182 meters from the Hardangervidda plateau into the Måbødalen valley."
+    },
+    {
+      "name": "Nationalpark Fulufjället",
+      "position": "61.5473, 12.753",
+      "description": "A Swedish national park home to Njupeskär, Sweden's highest waterfall, and 'Old Tjikko', one of the world's oldest trees."
+    },
+    {
+      "name": "Fargegaten",
+      "position": "58.9727, 5.7331",
+      "description": "Stavanger's most colorful street (Øvre Holmegate), famous for its vibrant houses, quirky cafes, and boutique shops."
+    },
+    {
+      "name": "Odda",
+      "position": "60.0692, 6.5462",
+      "description": "An industrial town turned tourism hub, nestled between the Hardangerfjord and the mountains of Folgefonna National Park."
+    },
+    {
+      "name": "Langfoss",
+      "position": "59.8434, 6.3403",
+      "description": "Voted one of the world's most beautiful waterfalls, it cascades 612 meters down a cliffside directly into the Åkrafjord."
+    },
+    {
+      "name": "Låtefossen",
+      "position": "59.9484, 6.5837",
+      "description": "A famous 'twin' waterfall where two separate streams join under a historic stone bridge on the road to Odda."
+    },
+    {
+      "name": "Preikestolen",
+      "position": "58.9864, 6.1904",
+      "description": "Also known as Pulpit Rock, this flat-topped cliff towers 604 meters above the Lysefjord and is Norway's most iconic hike."
+    },
+    {
+      "name": "Kanelstranda",
+      "position": "58.0148, 7.4373",
+      "description": "A beautiful sandy beach in Mandal, popular for swimming and coastal walks in Southern Norway."
+    },
+    {
+      "name": "Brattfallet",
+      "position": "60.0577, 13.4428",
+      "description": "A high waterfall and canyon in Värmland, Sweden, featuring historical timber-floating trails."
+    },
+    {
+      "name": "Städjan",
+      "position": "61.8906, 12.8554",
+      "description": "A distinctive volcano-shaped mountain in Dalarna, Sweden, offering 360-degree views of the mountain range."
+    },
+    {
+      "name": "Helagsfjäll",
+      "position": "62.9015, 12.4518",
+      "description": "Sweden's highest peak south of the Arctic Circle, featuring a 24km legendary hiking circuit and a glacier."
+    },
+    {
+      "name": "Tyngsjö",
+      "position": "60.2312, 13.8561",
+      "description": "A serene wilderness area in Dalarna, Sweden, perfect for off-grid camping and lake activities."
+    },
+    {
+      "name": "Kloten",
+      "position": "59.8941, 15.2861",
+      "description": "A premier canoeing destination within the Malingsbo-Kloten Nature Reserve, Sweden."
+    },
+    {
+      "name": "Konst på Hög",
+      "position": "59.1352, 15.1436",
+      "description": "A unique outdoor sculpture park located on top of a 100-meter high ash pile in Kumla, Sweden."
+    },
+    {
+      "name": "Nora",
+      "position": "59.5192, 15.0398",
+      "description": "One of Sweden's best-preserved wooden towns, famous for its historic steam engine railway and local ice cream."
+    },
+    {
+      "name": "Naturens hus",
+      "position": "59.2783, 15.2536",
+      "description": "A visitor center in Örebro located by Lake Hjälmaren, serving as a starting point for kayaking and nature walks."
+    },
+    {
+      "name": "Wadköping",
+      "position": "59.2736, 15.2341",
+      "description": "An open-air museum in Örebro with buildings dating back to the 16th century, showcasing Swedish history."
+    },
+    {
+      "name": "Fettjeåfallet",
+      "position": "62.4764, 13.8341",
+      "description": "One of Sweden's highest waterfalls (60m), reached by a beautiful stone-stepped path near Klövsjö."
+    },
+    {
+      "name": "Haverdals Nature reserve",
+      "position": "56.7261, 12.6514",
+      "description": "A coastal reserve in Halland featuring one of Scandinavia's highest sand dunes, the Lynga dune."
+    },
+    {
+      "name": "Tönnersa Naturreservat",
+      "position": "56.5742, 12.9451",
+      "description": "A vast coastal reserve with wide sandy beaches and massive dune systems south of Halmstad."
+    },
+    {
+      "name": "Jakriborg",
+      "position": "55.6791, 13.1362",
+      "description": "A modern housing estate in Hjärup built in a surreal medieval Hanseatic style."
+    },
+    {
+      "name": "Yngereds Kraftverk",
+      "position": "57.0183, 12.6251",
+      "description": "A historic hydroelectric power plant located along the Ätran river in Sweden."
+    },
+    {
+      "name": "Gekås Ullared",
+      "position": "57.1336, 12.7105",
+      "description": "Scandinavia's largest department store and a major cultural phenomenon in Sweden."
+    },
+    {
+      "name": "Sumpafallen",
+      "position": "57.1425, 12.6361",
+      "description": "A nature reserve featuring powerful rapids and beautiful oak forests along the Högvadsån river."
+    },
+    {
+      "name": "Schloss Läckö",
+      "position": "58.6751, 13.2201",
+      "description": "A stunning baroque castle situated on a headland in Lake Vänern, Sweden."
+    },
+    {
+      "name": "Färnebofjärdens nationalpark",
+      "position": "60.1836, 16.7841",
+      "description": "A unique river landscape where the Dalälven river meets the northern forest, rich in birdlife."
+    },
+    {
+      "name": "Autofriedhof Kyrkö Mosse",
+      "position": "56.4671, 14.6853",
+      "description": "A famous 'car cemetery' in the woods of Småland where vintage cars are being reclaimed by nature."
+    },
+    {
+      "name": "Blå Jungfrun nationalpark",
+      "position": "57.2518, 16.7815",
+      "description": "An isolated island in the Baltic Sea known for its granite domes, caves, and legendary folklore."
+    },
+    {
+      "name": "Sarek",
+      "position": "67.3331, 17.6514",
+      "description": "Europe's last true wilderness; a high-alpine national park in Sweden with no marked trails or cabins."
+    },
+    {
+      "name": "Ales stenar",
+      "position": "55.3824, 14.0541",
+      "description": "A megalithic monument in Skåne, Sweden, consisting of 59 large stones arranged in the shape of a ship."
+    },
+    {
+      "name": "Åsnens Nationalpark",
+      "position": "56.6182, 14.6505",
+      "description": "A unique lake archipelago landscape in Sweden with old-growth forests and rich biodiversity."
+    },
+    {
+      "name": "Döda fallet",
+      "position": "62.9841, 16.1152",
+      "description": "The 'Dead Fall' in Sweden, a dry waterfall created when a lake was accidentally drained in 1796."
+    },
+    {
+      "name": "Storforsen",
+      "position": "65.8512, 20.4051",
+      "description": "One of the highest-volume rapids in Europe, located on the Pite River in Swedish Lapland."
+    },
+    {
+      "name": "Nationalpark Tiveden",
+      "position": "58.7152, 14.6051",
+      "description": "A wild, rocky forest area in Sweden known for its giant boulders and crystal-clear lakes."
+    },
+    {
+      "name": "Nationalpark Skuleskogen",
+      "position": "63.1152, 18.4851",
+      "description": "A High Coast park in Sweden where the mountains meet the sea, featuring the Slåttdalsskrevan canyon."
+    },
+    {
+      "name": "Korallgrottan",
+      "position": "64.8812, 14.1531",
+      "description": "Sweden's longest cave system, a marble cave located in the wilderness of Jämtland."
+    },
+    {
+      "name": "Skierfe",
+      "position": "67.1651, 18.2152",
+      "description": "A mountain in Sarek National Park offering the most famous view in Sweden, looking down over the Rapa River delta."
+    }
+  ]
+}
