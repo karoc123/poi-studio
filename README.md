@@ -18,11 +18,12 @@ It is designed for local usage and simple shared-hosting deployment:
 - Add POIs by map click
 - If a popup is open, the next map tap closes it first before creating a new POI
 - Add POIs from Google Maps links (including short links via server-side resolve)
-- Search POIs by name and description in the active trip
+- Search POIs by name and description in the active trip (list + map markers)
+- Active search filter can be cleared with a dedicated map button (`Filter entfernen`)
 - Edit POI name and description
-- One-click delete (`Loeschen`)
+- Delete uses an inline confirmation (`Ja/Nein`) in list and popup
 - POI popup includes quick edit/close actions and Google Maps navigation link
-- Current-position button to center map on device location
+- Current-position control (`📍`) is placed next to zoom controls
 - Auto-save (toggle) and manual save
 
 ## Requirements

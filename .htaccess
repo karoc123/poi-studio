@@ -8,4 +8,5 @@ RewriteRule ^$ public/ [L]
 # Avoid loops when app is deployed in a subpath (for example /myapp/public/...)
 RewriteCond %{REQUEST_URI} !/public/
 RewriteRule ^(.*)$ public/$1 [L]
+RewriteCond %{REQUEST_URI} !^/favicon\.ico$ [NC]
 </IfModule>

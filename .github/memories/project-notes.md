@@ -18,10 +18,11 @@
 - Panel has two modes: POI list view and config view, switched via a gear button.
 - POI list must remain fully scrollable in panel view.
 - UI language is German.
-- POI delete is one-click (`Loeschen`) without confirm button.
+- POI delete uses inline confirmation (`Ja/Nein`) in both list and popup.
 - POI detail popup uses custom quick actions (edit pencil + large close button) and a Google Maps web link.
 - If a popup is open, first map tap closes popup; next tap creates a new POI.
-- Dedicated current-location button exists on map.
+- Map search filter affects both list and visible markers; map offers `Filter entfernen` shortcut.
+- Dedicated current-location control (`📍`) sits next to zoom controls.
 - POI can be imported from Google Maps link, including short-link resolve via API.
 - POI name/description can be edited.
 - POI list supports client-side search by name and description.

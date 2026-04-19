@@ -28,8 +28,7 @@ body {
 #panelToggleButton,
 #controlPanel,
 #addPointSheet,
-#importLinkSheet,
-#locateButton {
+#importLinkSheet {
   animation: panel-enter 220ms ease-out;
 }
 
@@ -172,21 +171,17 @@ body {
   gap: 0.35rem;
 }
 
-.poi-popup-actions {
-  margin-top: 0.55rem;
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.35rem;
-}
-
-.poi-actions button,
-.poi-popup-actions button {
+.poi-actions button {
   border: 0;
   border-radius: 0.55rem;
   padding: 0.35rem 0.45rem;
   font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
+}
+
+.poi-actions-confirm {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .btn-focus {
@@ -204,6 +199,31 @@ body {
   color: #fef2f2;
 }
 
+.btn-confirm-yes,
+.btn-popup-confirm-yes {
+  border: 0;
+  background: #16a34a;
+  color: #f0fdf4;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-confirm-no,
+.btn-popup-confirm-no {
+  border: 0;
+  background: #64748b;
+  color: #f8fafc;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn-confirm-yes,
+.btn-confirm-no {
+  border-radius: 0.55rem;
+  padding: 0.35rem 0.45rem;
+  font-size: 0.72rem;
+}
+
 .poi-popup-head {
   display: flex;
   align-items: flex-start;
@@ -213,12 +233,14 @@ body {
 
 .poi-popup-head-actions {
   display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 0.35rem;
 }
 
 .btn-popup-icon {
-  width: 2.1rem;
-  height: 2.1rem;
+  width: 2.35rem;
+  height: 2.35rem;
   border: 0;
   border-radius: 0.55rem;
   display: inline-flex;
@@ -237,6 +259,18 @@ body {
 .btn-popup-close {
   background: #dc2626;
   color: #ffffff;
+}
+
+.btn-popup-delete {
+  background: #b91c1c;
+  color: #ffffff;
+}
+
+.btn-popup-confirm-yes,
+.btn-popup-confirm-no {
+  border-radius: 0.55rem;
+  padding: 0.45rem 0.62rem;
+  font-size: 0.72rem;
 }
 
 .poi-popup h3 {
@@ -292,6 +326,26 @@ body {
 
 .leaflet-control-zoom a {
   color: #0f172a;
+}
+
+.poi-locate-control .poi-locate-button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.leaflet-right .poi-locate-control {
+  clear: none;
+  margin-right: 0.45rem;
+}
+
+.poi-locate-control .poi-locate-button:hover {
+  background: #f1f5f9;
 }
 
 @keyframes panel-enter {

@@ -21,6 +21,7 @@ const state = {
   panelOpen: false,
   panelMode: "pois",
   mapPopupOpen: false,
+  pendingDeletePoiId: null,
   poiSearchQueryRaw: "",
   poiSearchQuery: "",
   userLocationMarker: null,
@@ -39,7 +40,7 @@ const ui = {
   poiList: document.getElementById("poiList"),
   poiCount: document.getElementById("poiCount"),
   poiSearchInput: document.getElementById("poiSearchInput"),
-  locateButton: document.getElementById("locateButton"),
+  clearMapFilterButton: document.getElementById("clearMapFilterButton"),
   controlPanel: document.getElementById("controlPanel"),
   panelToggleButton: document.getElementById("panelToggleButton"),
   panelConfigButton: document.getElementById("panelConfigButton"),
@@ -246,6 +247,35 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 const markerLayer = L.layerGroup().addTo(map);
 let autosaveTimer = null;
 let resizeTimer = null;
+
+function installLocateControl() {
+  const LocateControl = L.Control.extend({
+    options: {
+      position: "topright"
+    },
+
+    onAdd() {
+      const container = L.DomUtil.create("div", "leaflet-bar leaflet-control poi-locate-control");
+      const button = L.DomUtil.create("button", "poi-locate-button", container);
+
+      button.type = "button";
+      button.textContent = "\ud83d\udccd";
+      button.setAttribute("aria-label", "Meinen Standort anzeigen");
+      button.setAttribute("title", "Meinen Standort anzeigen");
+
+      L.DomEvent.disableClickPropagation(container);
+      L.DomEvent.on(button, "click", (event) => {
+        L.DomEvent.stop(event);
+        locateCurrentPosition();
+      });
+
+      return container;
+    }
+  });
+
+  const locateControl = new LocateControl();
+  locateControl.addTo(map);
+}
 
 function scheduleMapResize() {
   if (resizeTimer) {
@@ -512,6 +542,55 @@ function toGoogleNavigationHref(poi) {
   }
 }
 
+function buildPopupDeleteActions(poiId) {
+  const escapedId = escapeHtml(poiId);
+
+  if (state.pendingDeletePoiId !== poiId) {
+    return `
+      <button
+        type="button"
+        class="btn-popup-icon btn-popup-delete"
+        data-poi-action="delete-start"
+        data-poi-id="${escapedId}"
+        aria-label="Loeschen"
+        title="Loeschen"
+      >
+        &#128465;
+      </button>
+    `;
+  }
+
+  return `
+    <button type="button" class="btn-popup-confirm-yes" data-poi-action="delete-confirm" data-poi-id="${escapedId}">
+      Ja
+    </button>
+    <button type="button" class="btn-popup-confirm-no" data-poi-action="delete-cancel" data-poi-id="${escapedId}">
+      Nein
+    </button>
+  `;
+}
+
+function buildPoiListActions(poiId) {
+  const escapedId = escapeHtml(poiId);
+
+  if (state.pendingDeletePoiId === poiId) {
+    return `
+      <div class="poi-actions poi-actions-confirm">
+        <button type="button" class="btn-confirm-yes" data-poi-action="delete-confirm" data-poi-id="${escapedId}">Ja</button>
+        <button type="button" class="btn-confirm-no" data-poi-action="delete-cancel" data-poi-id="${escapedId}">Nein</button>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="poi-actions">
+      <button type="button" class="btn-focus" data-poi-action="focus" data-poi-id="${escapedId}">Anzeigen</button>
+      <button type="button" class="btn-edit" data-poi-action="edit" data-poi-id="${escapedId}">Bearbeiten</button>
+      <button type="button" class="btn-delete" data-poi-action="delete-start" data-poi-id="${escapedId}">Loeschen</button>
+    </div>
+  `;
+}
+
 function buildPopupHtml(poi) {
   const name = escapeHtml(poi.name);
   const description = escapeHtml(poi.description || "Keine Beschreibung");
@@ -537,6 +616,7 @@ function buildPopupHtml(poi) {
           >
             &#9998;
           </button>
+          ${buildPopupDeleteActions(poi.id)}
           <button
             type="button"
             class="btn-popup-icon btn-popup-close"
@@ -552,9 +632,6 @@ function buildPopupHtml(poi) {
       <p>${description}</p>
       <p class="poi-popup-position">${position}</p>
       ${navMarkup ? `<div class="poi-popup-links">${navMarkup}</div>` : ""}
-      <div class="poi-popup-actions">
-        <button type="button" class="btn-delete" data-poi-action="delete" data-poi-id="${id}">Loeschen</button>
-      </div>
     </div>
   `;
 }
@@ -564,7 +641,9 @@ function renderMarkers() {
   state.markersById.clear();
   state.mapPopupOpen = false;
 
-  for (const poi of state.pois) {
+  const visiblePois = getFilteredPois();
+
+  for (const poi of visiblePois) {
     let lat;
     let lng;
 
@@ -584,7 +663,60 @@ function renderMarkers() {
   }
 }
 
+function refreshMarkerPopupContent(poiId) {
+  if (!poiId) {
+    return;
+  }
+
+  const poi = state.pois.find((entry) => entry.id === poiId);
+  const marker = state.markersById.get(poiId);
+
+  if (!poi || !marker) {
+    return;
+  }
+
+  const wasOpen = marker.isPopupOpen();
+  marker.setPopupContent(buildPopupHtml(poi));
+
+  if (wasOpen) {
+    marker.openPopup();
+  }
+}
+
+function setPendingDeletePoi(nextPoiId) {
+  const previousPoiId = state.pendingDeletePoiId;
+  const normalizedPoiId = nextPoiId || null;
+
+  if (previousPoiId === normalizedPoiId) {
+    return;
+  }
+
+  state.pendingDeletePoiId = normalizedPoiId;
+
+  renderPoiList();
+  refreshMarkerPopupContent(previousPoiId);
+  refreshMarkerPopupContent(state.pendingDeletePoiId);
+}
+
+function syncMapFilterButton() {
+  const hasFilter = Boolean(state.poiSearchQuery);
+  ui.clearMapFilterButton.classList.toggle("hidden", !hasFilter);
+}
+
+function setPoiSearchQuery(rawQuery) {
+  state.poiSearchQueryRaw = String(rawQuery || "");
+  state.poiSearchQuery = normalizeSearchText(rawQuery);
+  state.pendingDeletePoiId = null;
+  syncMapFilterButton();
+  renderMarkers();
+  renderPoiList();
+}
+
 function renderPoiList() {
+  if (state.pendingDeletePoiId && !state.pois.some((poi) => poi.id === state.pendingDeletePoiId)) {
+    state.pendingDeletePoiId = null;
+  }
+
   syncCurrentTripPointCount();
 
   const visiblePois = getFilteredPois();
@@ -610,18 +742,13 @@ function renderPoiList() {
       const name = highlightSearchMatch(poi.name);
       const description = highlightSearchMatch(poi.description || "Keine Beschreibung");
       const position = escapeHtml(poi.position);
-      const id = escapeHtml(poi.id);
 
       return `
         <li class="poi-card">
           <h3>${name}</h3>
           <p>${description}</p>
           <p>${position}</p>
-          <div class="poi-actions">
-            <button type="button" class="btn-focus" data-poi-action="focus" data-poi-id="${id}">Anzeigen</button>
-            <button type="button" class="btn-edit" data-poi-action="edit" data-poi-id="${id}">Bearbeiten</button>
-            <button type="button" class="btn-delete" data-poi-action="delete" data-poi-id="${id}">Loeschen</button>
-          </div>
+          ${buildPoiListActions(poi.id)}
         </li>
       `;
     })
@@ -736,6 +863,7 @@ function setAddSheetModeForEdit(poi) {
 }
 
 function openAddPointSheetForCreate(latlng) {
+  setPendingDeletePoi(null);
   closeImportLinkSheet();
   setAddSheetModeForCreate(latlng);
   ui.addPointSheet.classList.remove("hidden");
@@ -752,6 +880,7 @@ function openAddPointSheetForEdit(id) {
   }
 
   try {
+    setPendingDeletePoi(null);
     closeImportLinkSheet();
     setAddSheetModeForEdit(poi);
     ui.addPointSheet.classList.remove("hidden");
@@ -769,6 +898,7 @@ function closeAddPointSheet() {
 }
 
 function openImportLinkSheet() {
+  setPendingDeletePoi(null);
   closeAddPointSheet();
   state.importLatLng = null;
   ui.mapsLinkInput.value = "";
@@ -867,6 +997,7 @@ function removePoi(id) {
 
   const poi = state.pois[index];
   state.pois.splice(index, 1);
+  state.pendingDeletePoiId = null;
 
   renderMarkers();
   renderPoiList();
@@ -1623,21 +1754,35 @@ function handlePoiAction(action, id) {
   }
 
   if (action === "focus") {
+    setPendingDeletePoi(null);
+    setPanelOpen(false);
     focusPoi(id);
     return;
   }
 
   if (action === "edit") {
+    setPendingDeletePoi(null);
     openAddPointSheetForEdit(id);
     return;
   }
 
   if (action === "close") {
+    setPendingDeletePoi(null);
     closePoiPopup(id);
     return;
   }
 
-  if (action === "delete") {
+  if (action === "delete-start" || action === "delete") {
+    setPendingDeletePoi(id);
+    return;
+  }
+
+  if (action === "delete-cancel") {
+    setPendingDeletePoi(null);
+    return;
+  }
+
+  if (action === "delete-confirm") {
     removePoi(id);
   }
 }
@@ -1704,10 +1849,6 @@ function wireEvents() {
     submitImportForm();
   });
 
-  ui.locateButton.addEventListener("click", () => {
-    locateCurrentPosition();
-  });
-
   ui.saveButton.addEventListener("click", () => {
     void savePoints({ reason: "manual" });
   });
@@ -1727,9 +1868,12 @@ function wireEvents() {
   });
 
   ui.poiSearchInput.addEventListener("input", () => {
-    state.poiSearchQueryRaw = ui.poiSearchInput.value;
-    state.poiSearchQuery = normalizeSearchText(ui.poiSearchInput.value);
-    renderPoiList();
+    setPoiSearchQuery(ui.poiSearchInput.value);
+  });
+
+  ui.clearMapFilterButton.addEventListener("click", () => {
+    ui.poiSearchInput.value = "";
+    setPoiSearchQuery("");
   });
 
   ui.tripSelect.addEventListener("change", async () => {
@@ -1778,12 +1922,14 @@ function wireEvents() {
 
 function init() {
   map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
+  installLocateControl();
   installMapOverlayGuards();
 
   state.panelOpen = true;
   state.panelMode = "pois";
   syncPanelState();
   syncPanelMode();
+  syncMapFilterButton();
 
   wireEvents();
   void loadTrips();
