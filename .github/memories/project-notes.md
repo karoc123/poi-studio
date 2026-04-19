@@ -14,11 +14,13 @@
 
 ## UX
 
-- Config panel is collapsible on mobile.
-- POI list must remain scrollable in collapsed/open mobile flow.
+- Full-height slide-in panel is used on both mobile and desktop.
+- Panel has two modes: POI list view and config view, switched via a gear button.
+- POI list must remain fully scrollable in panel view.
 - UI language is German.
 - POI delete is one-click (`Loeschen`) without confirm button.
-- POI detail popup includes navigation links (`geo:` and web fallback).
+- POI detail popup uses custom quick actions (edit pencil + large close button) and a Google Maps web link.
+- If a popup is open, first map tap closes popup; next tap creates a new POI.
 - Dedicated current-location button exists on map.
 - POI can be imported from Google Maps link, including short-link resolve via API.
 - POI name/description can be edited.

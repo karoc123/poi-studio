@@ -1,7 +1,6 @@
 const DEFAULT_CENTER = [59.3293, 18.0686];
 const DEFAULT_ZOOM = 4;
 const AUTOSAVE_DELAY_MS = 900;
-const MOBILE_BREAKPOINT_QUERY = "(max-width: 767px)";
 const MIN_FOCUS_ZOOM = 10;
 const LOCATION_FOCUS_ZOOM = 13;
 
@@ -20,6 +19,8 @@ const state = {
   saveQueued: false,
   autoSaveEnabled: true,
   panelOpen: false,
+  panelMode: "pois",
+  mapPopupOpen: false,
   poiSearchQueryRaw: "",
   poiSearchQuery: "",
   userLocationMarker: null,
@@ -41,7 +42,10 @@ const ui = {
   locateButton: document.getElementById("locateButton"),
   controlPanel: document.getElementById("controlPanel"),
   panelToggleButton: document.getElementById("panelToggleButton"),
+  panelConfigButton: document.getElementById("panelConfigButton"),
   panelCloseButton: document.getElementById("panelCloseButton"),
+  panelPoisView: document.getElementById("panelPoisView"),
+  panelConfigView: document.getElementById("panelConfigView"),
   addPointSheet: document.getElementById("addPointSheet"),
   addPointTitle: document.getElementById("addPointTitle"),
   addPointHint: document.getElementById("addPointHint"),
@@ -243,10 +247,6 @@ const markerLayer = L.layerGroup().addTo(map);
 let autosaveTimer = null;
 let resizeTimer = null;
 
-function isMobileViewport() {
-  return window.matchMedia(MOBILE_BREAKPOINT_QUERY).matches;
-}
-
 function scheduleMapResize() {
   if (resizeTimer) {
     window.clearTimeout(resizeTimer);
@@ -258,7 +258,7 @@ function scheduleMapResize() {
 }
 
 function syncPanelState() {
-  const shouldBeOpen = !isMobileViewport() || state.panelOpen;
+  const shouldBeOpen = state.panelOpen;
   ui.controlPanel.classList.toggle("is-open", shouldBeOpen);
   ui.panelToggleButton.setAttribute("aria-expanded", String(shouldBeOpen));
   scheduleMapResize();
@@ -267,6 +267,20 @@ function syncPanelState() {
 function setPanelOpen(nextOpen) {
   state.panelOpen = Boolean(nextOpen);
   syncPanelState();
+}
+
+function syncPanelMode() {
+  const isConfigMode = state.panelMode === "config";
+
+  ui.panelConfigButton.setAttribute("aria-pressed", String(isConfigMode));
+  ui.panelConfigButton.classList.toggle("is-active", isConfigMode);
+  ui.panelPoisView.classList.toggle("hidden", isConfigMode);
+  ui.panelConfigView.classList.toggle("hidden", !isConfigMode);
+}
+
+function setPanelMode(nextMode) {
+  state.panelMode = nextMode === "config" ? "config" : "pois";
+  syncPanelMode();
 }
 
 function showStatus(message, kind = "info") {
@@ -487,18 +501,6 @@ function scheduleAutoSave() {
   }, AUTOSAVE_DELAY_MS);
 }
 
-function toGeoNavigationHref(poi) {
-  try {
-    const [latRaw, lngRaw] = parsePosition(poi.position);
-    const lat = formatCoord(latRaw);
-    const lng = formatCoord(lngRaw);
-    const query = encodeURIComponent(`${lat},${lng} (${poi.name})`);
-    return `geo:${lat},${lng}?q=${query}`;
-  } catch {
-    return "";
-  }
-}
-
 function toGoogleNavigationHref(poi) {
   try {
     const [latRaw, lngRaw] = parsePosition(poi.position);
@@ -515,29 +517,42 @@ function buildPopupHtml(poi) {
   const description = escapeHtml(poi.description || "Keine Beschreibung");
   const position = escapeHtml(poi.position);
   const id = escapeHtml(poi.id);
-  const geoHref = toGeoNavigationHref(poi);
   const webHref = toGoogleNavigationHref(poi);
-
-  const navMarkup = [
-    geoHref
-      ? `<a href="${escapeHtml(geoHref)}" target="_blank" rel="noopener noreferrer">Navigieren (App)</a>`
-      : "",
-    webHref
-      ? `<a href="${escapeHtml(webHref)}" target="_blank" rel="noopener noreferrer">In Google Maps</a>`
-      : ""
-  ]
-    .filter(Boolean)
-    .join("");
+  const navMarkup = webHref
+    ? `<a href="${escapeHtml(webHref)}" target="_blank" rel="noopener noreferrer">In Google Maps</a>`
+    : "";
 
   return `
     <div class="poi-popup">
-      <h3>${name}</h3>
+      <div class="poi-popup-head">
+        <h3>${name}</h3>
+        <div class="poi-popup-head-actions">
+          <button
+            type="button"
+            class="btn-popup-icon btn-popup-edit"
+            data-poi-action="edit"
+            data-poi-id="${id}"
+            aria-label="Bearbeiten"
+            title="Bearbeiten"
+          >
+            &#9998;
+          </button>
+          <button
+            type="button"
+            class="btn-popup-icon btn-popup-close"
+            data-poi-action="close"
+            data-poi-id="${id}"
+            aria-label="Schliessen"
+            title="Schliessen"
+          >
+            &#10005;
+          </button>
+        </div>
+      </div>
       <p>${description}</p>
       <p class="poi-popup-position">${position}</p>
       ${navMarkup ? `<div class="poi-popup-links">${navMarkup}</div>` : ""}
       <div class="poi-popup-actions">
-        <button type="button" class="btn-focus" data-poi-action="focus" data-poi-id="${id}">Anzeigen</button>
-        <button type="button" class="btn-edit" data-poi-action="edit" data-poi-id="${id}">Bearbeiten</button>
         <button type="button" class="btn-delete" data-poi-action="delete" data-poi-id="${id}">Loeschen</button>
       </div>
     </div>
@@ -547,6 +562,7 @@ function buildPopupHtml(poi) {
 function renderMarkers() {
   markerLayer.clearLayers();
   state.markersById.clear();
+  state.mapPopupOpen = false;
 
   for (const poi of state.pois) {
     let lat;
@@ -559,7 +575,10 @@ function renderMarkers() {
     }
 
     const marker = L.marker([lat, lng], { title: poi.name });
-    marker.bindPopup(buildPopupHtml(poi));
+    marker.bindPopup(buildPopupHtml(poi), {
+      closeButton: false,
+      closeOnClick: false
+    });
     markerLayer.addLayer(marker);
     state.markersById.set(poi.id, marker);
   }
@@ -721,10 +740,7 @@ function openAddPointSheetForCreate(latlng) {
   setAddSheetModeForCreate(latlng);
   ui.addPointSheet.classList.remove("hidden");
   ui.pointName.focus();
-
-  if (isMobileViewport()) {
-    setPanelOpen(false);
-  }
+  setPanelOpen(false);
 }
 
 function openAddPointSheetForEdit(id) {
@@ -740,10 +756,7 @@ function openAddPointSheetForEdit(id) {
     setAddSheetModeForEdit(poi);
     ui.addPointSheet.classList.remove("hidden");
     ui.pointDescription.focus();
-
-    if (isMobileViewport()) {
-      setPanelOpen(false);
-    }
+    setPanelOpen(false);
   } catch {
     showStatus("POI enthaelt keine gueltige Position.", "error");
   }
@@ -765,10 +778,7 @@ function openImportLinkSheet() {
   setImportStatus("Noch kein Link analysiert.", "info");
   ui.importLinkSheet.classList.remove("hidden");
   ui.mapsLinkInput.focus();
-
-  if (isMobileViewport()) {
-    setPanelOpen(false);
-  }
+  setPanelOpen(false);
 }
 
 function closeImportLinkSheet() {
@@ -887,6 +897,17 @@ function focusPoi(id) {
   } catch {
     showStatus("POI enthaelt keine gueltige Position.", "error");
   }
+}
+
+function closePoiPopup(id) {
+  const marker = state.markersById.get(id);
+
+  if (marker) {
+    marker.closePopup();
+    return;
+  }
+
+  map.closePopup();
 }
 
 function extractErrorDetails(payload, status) {
@@ -1224,10 +1245,7 @@ async function createNewTrip() {
   renderTripSelect();
   await switchTrip(newTrip.id, { fitMap: true });
   showStatus(`Neuer Trip '${name}' erstellt. Speicherung beim ersten Punkt.`, "success");
-
-  if (isMobileViewport()) {
-    setPanelOpen(true);
-  }
+  setPanelOpen(true);
 }
 
 async function reloadCurrentTrip() {
@@ -1614,6 +1632,11 @@ function handlePoiAction(action, id) {
     return;
   }
 
+  if (action === "close") {
+    closePoiPopup(id);
+    return;
+  }
+
   if (action === "delete") {
     removePoi(id);
   }
@@ -1629,7 +1652,20 @@ function installMapOverlayGuards() {
 }
 
 function wireEvents() {
+  map.on("popupopen", () => {
+    state.mapPopupOpen = true;
+  });
+
+  map.on("popupclose", () => {
+    state.mapPopupOpen = false;
+  });
+
   map.on("click", (event) => {
+    if (state.mapPopupOpen) {
+      map.closePopup();
+      return;
+    }
+
     openAddPointSheetForCreate(event.latlng);
   });
 
@@ -1713,6 +1749,11 @@ function wireEvents() {
     setPanelOpen(!state.panelOpen);
   });
 
+  ui.panelConfigButton.addEventListener("click", () => {
+    const nextMode = state.panelMode === "pois" ? "config" : "pois";
+    setPanelMode(nextMode);
+  });
+
   ui.panelCloseButton.addEventListener("click", () => {
     setPanelOpen(false);
   });
@@ -1739,8 +1780,10 @@ function init() {
   map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
   installMapOverlayGuards();
 
-  state.panelOpen = !isMobileViewport();
+  state.panelOpen = true;
+  state.panelMode = "pois";
   syncPanelState();
+  syncPanelMode();
 
   wireEvents();
   void loadTrips();

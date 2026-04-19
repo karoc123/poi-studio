@@ -11,15 +11,17 @@ It is designed for local usage and simple shared-hosting deployment:
 
 ## Highlights
 
-- Full-screen map UI with mobile collapsible config panel
+- Full-screen map UI with full-height slide-in panel (same behavior on mobile and desktop)
+- POI panel and config panel can be switched via gear toggle
 - Multiple trips, each stored in its own JSON file
 - Create new trip in UI, persist only after first saved POI
 - Add POIs by map click
+- If a popup is open, the next map tap closes it first before creating a new POI
 - Add POIs from Google Maps links (including short links via server-side resolve)
 - Search POIs by name and description in the active trip
 - Edit POI name and description
 - One-click delete (`Loeschen`)
-- POI popup includes navigation links
+- POI popup includes quick edit/close actions and Google Maps navigation link
 - Current-position button to center map on device location
 - Auto-save (toggle) and manual save
 
